@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048-星云争霸</title>
+
+  <link href="style/main.css" rel="stylesheet" type="text/css">
+  <link href="../common/layui/2.2.6/css/layui.css" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
+  <link rel="apple-touch-startup-image" href="meta/apple-touch-startup-image-640x1096.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"> <!-- iPhone 5+ -->
+  <link rel="apple-touch-startup-image" href="meta/apple-touch-startup-image-640x920.png"  media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 2)"> <!-- iPhone, retina -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+<style type="text/css">
+.layui-layer-title {
+	color: #f9f6f2 !important;
+	background-color: #8f7a66 !important;
+}
+
+.layui-layer-btn .layui-layer-btn0 {
+	color: #f9f6f2 !important;
+	border-color: #8f7a66 !important;
+	background-color: #8f7a66 !important;
+}
+
+.layui-table tbody tr:hover, .layui-table thead tr, .layui-table-click,
+	.layui-table-header, .layui-table-hover, .layui-table-mend,
+	.layui-table-patch, .layui-table-tool, .layui-table[lay-even] tr:nth-child(even)
+	{
+	background-color: #bbada0 !important;
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="heading">
+      <h1 class="title">2048</h1>
+      <div class="scores-container">
+        <div class="score-container">0</div>
+        <div class="best-container">0</div>
+      </div>
+    </div>
+
+    <div class="above-game">
+      <p class="game-intro">挑战最高分 <strong>2048</strong></p>
+      <a class="restart-button">New Game</a>
+    </div>
+
+    <div class="game-container">
+      <div class="game-message">
+        <p></p>
+        <div class="lower">
+	        <a class="keep-playing-button">Keep going</a>
+          <a class="retry-button">Try again</a>
+        </div>
+      </div>
+
+      <div class="grid-container">
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+      </div>
+
+      <div class="tile-container">
+
+      </div>
+    </div>
+
+    <p class="game-explanation">
+      <strong class="important">游戏玩法:</strong>使用<strong>方向键</strong>移动方块，相同数字的方块碰撞在一起会合并成新方块，新方块数字为两碰撞方块之和，直到碰撞出2048为胜。
+    </p>
+    <hr>
+		<div class="layui-form">
+			<table class="layui-table" lay-skin="nob" style="color: #776e65;background: #faf8ef;">
+				<thead>
+					<tr>
+						<th>排名</th>
+						<th>名字</th>
+						<th>得分</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+		<p>
+    <strong class="important">提示:</strong>请提前安装星云钱包的谷歌插件以便上传游戏得分到星云链中，如果你超过最高分，那么页面将会展示您的大名和分数，并接受所有玩家的挑战！
+    </p>
+    <hr>
+    <p>
+    Based on <a href="https://github.com/gabrielecirulli/2048/" target="_blank">2048 by  Gabriele Cirulli.</a>
+    </p>
+  </div>
+
+  <script src="js/bind_polyfill.js"></script>
+  <script src="js/classlist_polyfill.js"></script>
+  <script src="js/animframe_polyfill.js"></script>
+  <script src="js/keyboard_input_manager.js"></script>
+  <script src="js/html_actuator.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/tile.js"></script>
+  <script src="js/local_storage_manager.js"></script>
+  <script src="js/game_manager.js"></script>
+  <script src="js/application.js"></script>
+	<script src="../common/jquery/1.12.4/jquery.min.js"></script>
+	<script src="../common/neb/dist/nebulas.js"></script>
+	<script src="../common/neb/dist/nebPay.js"></script>
+	<script src="../common/layui/2.2.6/layui.js"></script>
+	<script type="text/javascript">
+		"use strict";
+		// 合约地址
+		var dappAddress = "n1n11VRJjMGqSNUMKcKC3AGyrADbKGouDtJ";
+		var NebPay = require("nebpay");
+		var nebPay = new NebPay();
+		var serialNumber;
+		var intervalQuery;
+		var callbackUrl = NebPay.config.testnetUrl;
+		
+		var nebulas = require("nebulas"),
+        neb = new nebulas.Neb();
+		
+		layui.use('layer', function() { //独立版的layer无需执行这一句
+			var $ = layui.jquery, layer = layui.layer; //独立版的layer无需执行这一句
+
+			var to = dappAddress;
+			var value = "0";
+			var callFunction = "read";
+			var callArgs = "";
+			nebPay.simulateCall(to, value, callFunction, callArgs, {
+				qrcode : {
+					showQRCode : false
+				},
+				goods : {
+					name : "test",
+					desc : "test goods"
+				},
+				listener : function(resp) {
+					$(".layui-table tbody").empty();
+					var result = JSON.parse(resp.result)
+					for (var i in result){
+						if(i==0){
+							$(".game-intro strong").text(result[i].score);
+						}
+						$(".layui-table tbody").append("<tr><td>"+(parseInt(i)+1)+"</td><td>"+(result[i].name?result[i].name:result[i].from)+"</td><td>"+result[i].score+"</td></tr>");
+					}
+				}
+			});
+		});
+		function sendScore(){
+			//prompt层
+			layer.prompt({
+				title : '给自己起一个响当当的名字吧',
+				formType : 0,
+				maxlength : 10,
+			}, function(text, index) {
+				var indexLoad = layer.load(0);
+				var $score=$(".score-container").clone();
+				$score.find(':nth-child(n)').remove();
+				var score = $score.text();
+				var to = dappAddress;
+				var value = 0;
+				var callFunction = "save";
+				var callArgs = "[\"" + score + "\",\"" + text + "\"]";
+				serialNumber = nebPay.call(to, value, callFunction, callArgs, {
+					qrcode : {
+						showQRCode : false
+					},
+					goods : {
+						name : "得分",
+						desc : "得分：" + score
+					},
+					callback:callbackUrl,
+					listener : function(resp) {
+						layer.close(index);
+						layer.close(indexLoad);
+						/**intervalQuery = setInterval(function () {
+							queryPayInfo();
+		                }, 5000);**/
+					}
+				});
+			});
+		}
+		function queryPayInfo() {
+            nebPay.queryPayInfo(serialNumber,{callback: callbackUrl})   //search transaction result from server (result upload to server by app)
+            .then(function (resp) {
+            	clearInterval(intervalQuery);
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+        }
+	</script>
+</body>
+</html>
